@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus Mode Settings</title>
+    <link rel="stylesheet" href="settings.css">
+</head>
+
+<body>
+    <div class="settings-container">
+        <header class="settings-header">
+            <div class="header-content">
+                <span class="logo-icon">📖</span>
+                <div class="header-text">
+                    <h1>Focus Mode</h1>
+                    <p>Customize your reading experience</p>
+                </div>
+            </div>
+        </header>
+
+        <main class="settings-main">
+            <!-- Scroll Settings -->
+            <section class="settings-section">
+                <h2 class="section-title">Scroll Behavior</h2>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <label for="scrollChunkSize">Scroll Chunk Size</label>
+                        <p class="setting-description">Percentage of viewport height to scroll at once</p>
+                    </div>
+                    <div class="setting-control">
+                        <input type="range" id="scrollChunkSize" min="25" max="150" value="100" step="25">
+                        <span class="range-value" id="scrollChunkValue">100%</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Timer Settings -->
+            <section class="settings-section">
+                <h2 class="section-title">Reading Timer</h2>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <label for="showTimer">Show Timer Overlay</label>
+                        <p class="setting-description">Display reading time on the page</p>
+                    </div>
+                    <div class="setting-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="showTimer" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Whitelist Settings -->
+            <section class="settings-section">
+                <h2 class="section-title">Website Whitelist</h2>
+                <div class="setting-item column">
+                    <div class="setting-info">
+                        <label for="whitelist">Excluded Domains</label>
+                        <p class="setting-description">Focus Mode will not activate on these domains</p>
+                    </div>
+                    <div class="whitelist-control">
+                        <div class="whitelist-input-group">
+                            <input type="text" id="whitelistInput" placeholder="example.com">
+                            <button type="button" id="addWhitelistBtn" class="btn btn-add">Add</button>
+                        </div>
+                        <ul class="whitelist-items" id="whitelistItems">
+                            <!-- Dynamically populated -->
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Actions -->
+            <section class="settings-actions">
+                <button type="button" id="resetBtn" class="btn btn-secondary">Reset to Defaults</button>
+                <div class="save-status" id="saveStatus">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>Settings saved</span>
+                </div>
+            </section>
+        </main>
+
+        <footer class="settings-footer">
+            <p>Focus Mode v1.0.0</p>
+        </footer>
+    </div>
+    <script src="settings.js"></script>
+</body>
+
+</html>
