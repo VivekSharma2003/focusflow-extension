@@ -2,10 +2,6 @@
 
 A Chrome browser extension that helps you read online content without distractions by cleaning webpages, controlling scrolling, and tracking reading time.
 
-<p align="center">
-  <img src="icons/icon128.png" alt="Focus Mode" width="128" height="128">
-</p>
-
 ## Features
 
 ### 🧹 Remove Distractions
