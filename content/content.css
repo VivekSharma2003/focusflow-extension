@@ -238,18 +238,7 @@
 /* ================================
    Reading Enhancement
    ================================ */
-.focus-mode-active article,
-.focus-mode-active main,
-.focus-mode-active [role="main"],
-.focus-mode-active .post-content,
-.focus-mode-active .article-content,
-.focus-mode-active .entry-content {
-  max-width: 750px;
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 20px;
-  padding-right: 20px;
-}
+/* Width adjustments removed - preserving original page layout */
 
 /* ================================
    Responsive Adjustments
