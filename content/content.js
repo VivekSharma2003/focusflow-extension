@@ -9,8 +9,20 @@
     let scrollPosition = 0;
     let settings = {
         scrollChunkSize: 100,
-        showTimer: true
+        showTimer: true,
+        darkMode: false,
+        fontSize: 100,
+        showProgress: true,
+        showReadingSpeed: true,
+        focusSessionDuration: 25
     };
+    
+    let wordCount = 0;
+    let readingSpeed = 0;
+    let totalReadingTime = 0;
+    let focusSessionStartTime = null;
+    let focusSessionInterval = null;
+    let sessionTimeRemaining = 0;
 
     // Selectors for distracting elements
     const DISTRACTION_SELECTORS = [
@@ -95,6 +107,41 @@
         const prefs = await StorageUtils.getAll();
         settings.scrollChunkSize = prefs.scrollChunkSize || 100;
         settings.showTimer = prefs.showTimer !== false;
+        settings.darkMode = prefs.darkMode || false;
+        settings.fontSize = prefs.fontSize || 100;
+        settings.showProgress = prefs.showProgress !== false;
+        settings.showReadingSpeed = prefs.showReadingSpeed !== false;
+        settings.focusSessionDuration = prefs.focusSessionDuration || 25;
+        
+        // Calculate word count
+        wordCount = calculateWordCount();
+    }
+    
+    /**
+     * Calculate word count from main content
+     */
+    function calculateWordCount() {
+        const contentSelectors = [
+            'article', 'main', '[role="main"]',
+            '.post-content', '.article-content', '.entry-content',
+            '.post-body', '.article-body', '.story-body',
+            '#content', '.content', '.main-content'
+        ];
+        
+        let text = '';
+        for (const selector of contentSelectors) {
+            const element = document.querySelector(selector);
+            if (element) {
+                text = element.innerText || element.textContent || '';
+                break;
+            }
+        }
+        
+        if (!text) {
+            text = document.body.innerText || document.body.textContent || '';
+        }
+        
+        return text.trim().split(/\s+/).filter(word => word.length > 0).length;
     }
 
     /**
@@ -133,6 +180,28 @@
                 settings = { ...settings, ...message.settings };
                 if (isEnabled) {
                     updateTimerVisibility();
+                    updateProgressBar();
+                    updateReadingSpeed();
+                    if (settings.darkMode) {
+                        applyDarkMode();
+                    } else {
+                        removeDarkMode();
+                    }
+                    applyFontSize();
+                    
+                    // Update timer display if reading speed setting changed
+                    const timer = document.getElementById('focus-mode-timer');
+                    if (timer && 'showReadingSpeed' in message.settings) {
+                        const speedDisplay = timer.querySelector('.reading-speed');
+                        if (settings.showReadingSpeed && wordCount > 0 && !speedDisplay) {
+                            const speedEl = document.createElement('span');
+                            speedEl.className = 'reading-speed';
+                            timer.querySelector('.timer-display').appendChild(speedEl);
+                            updateReadingSpeed();
+                        } else if (!settings.showReadingSpeed && speedDisplay) {
+                            speedDisplay.remove();
+                        }
+                    }
                 }
                 sendResponse({ success: true });
                 break;
@@ -158,6 +227,20 @@
 
         // Enable scroll locking
         enableScrollLock();
+        
+        // Update progress on scroll (throttled)
+        let scrollTimeout;
+        const handleScroll = () => {
+            if (scrollTimeout) return;
+            scrollTimeout = setTimeout(() => {
+                updateProgressBar();
+                scrollTimeout = null;
+            }, 100);
+        };
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        
+        // Store handler for cleanup
+        window._focusModeScrollHandler = handleScroll;
 
         // Create navigation buttons
         createNavButtons();
@@ -167,6 +250,22 @@
             createTimer();
             startTimer();
         }
+        
+        // Create reading progress bar
+        if (settings.showProgress) {
+            createProgressBar();
+        }
+        
+        // Apply dark mode
+        if (settings.darkMode) {
+            applyDarkMode();
+        }
+        
+        // Apply font size
+        applyFontSize();
+        
+        // Start focus session
+        startFocusSession();
 
         // Update badge
         chrome.runtime.sendMessage({ action: 'updateBadge', enabled: true });
@@ -195,6 +294,12 @@
 
         // Disable scroll locking
         disableScrollLock();
+        
+        // Remove scroll listener
+        if (window._focusModeScrollHandler) {
+            window.removeEventListener('scroll', window._focusModeScrollHandler);
+            window._focusModeScrollHandler = null;
+        }
 
         // Remove navigation buttons
         removeNavButtons();
@@ -202,6 +307,18 @@
         // Remove timer
         removeTimer();
         stopTimer();
+        
+        // Remove progress bar
+        removeProgressBar();
+        
+        // Remove dark mode
+        removeDarkMode();
+        
+        // Reset font size
+        resetFontSize();
+        
+        // Stop focus session
+        stopFocusSession();
 
         // Update badge
         chrome.runtime.sendMessage({ action: 'updateBadge', enabled: false });
@@ -394,8 +511,11 @@
 
         timer.innerHTML = `
       <div class="timer-display">
-        <span class="timer-icon">📖</span>
-        <span class="timer-time">00:00</span>
+        <div class="timer-main">
+          <span class="timer-icon">📖</span>
+          <span class="timer-time">00:00</span>
+        </div>
+        ${settings.showReadingSpeed && wordCount > 0 ? '<span class="reading-speed">0 WPM</span>' : ''}
       </div>
       <div class="timer-controls">
         <button class="timer-btn timer-pause" title="Pause">
@@ -450,8 +570,12 @@
         timerInterval = setInterval(() => {
             if (!isPaused) {
                 elapsedSeconds++;
+                totalReadingTime++;
                 updateTimerDisplay();
+                updateProgressBar();
+                updateReadingSpeed();
                 saveState();
+                saveReadingStats();
             }
         }, 1000);
     }
@@ -519,6 +643,8 @@
         if (timerTime) {
             timerTime.textContent = formatTime(elapsedSeconds);
         }
+        // Also update reading speed when timer updates
+        updateReadingSpeed();
     }
 
     /**
@@ -533,6 +659,211 @@
             return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
         return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    
+    /**
+     * Create reading progress bar
+     */
+    function createProgressBar() {
+        const progressBar = document.createElement('div');
+        progressBar.id = 'focus-mode-progress';
+        progressBar.className = 'focus-mode-progress';
+        progressBar.innerHTML = `
+            <div class="progress-bar-fill"></div>
+            <div class="progress-text">0%</div>
+        `;
+        document.body.appendChild(progressBar);
+        updateProgressBar();
+    }
+    
+    /**
+     * Remove reading progress bar
+     */
+    function removeProgressBar() {
+        const progressBar = document.getElementById('focus-mode-progress');
+        if (progressBar) progressBar.remove();
+    }
+    
+    /**
+     * Update reading progress bar
+     */
+    function updateProgressBar() {
+        const progressBar = document.getElementById('focus-mode-progress');
+        if (!progressBar) return;
+        
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = scrollHeight > 0 ? Math.min(100, Math.round((scrollTop / scrollHeight) * 100)) : 0;
+        
+        const fill = progressBar.querySelector('.progress-bar-fill');
+        const text = progressBar.querySelector('.progress-text');
+        
+        if (fill) fill.style.width = `${progress}%`;
+        if (text) text.textContent = `${progress}%`;
+    }
+    
+    /**
+     * Apply dark mode
+     */
+    function applyDarkMode() {
+        document.body.classList.add('focus-dark-mode');
+    }
+    
+    /**
+     * Remove dark mode
+     */
+    function removeDarkMode() {
+        document.body.classList.remove('focus-dark-mode');
+    }
+    
+    /**
+     * Apply font size adjustment
+     */
+    function applyFontSize() {
+        const baseSize = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+        const multiplier = settings.fontSize / 100;
+        document.body.style.fontSize = `${baseSize * multiplier}px`;
+    }
+    
+    /**
+     * Reset font size
+     */
+    function resetFontSize() {
+        document.body.style.fontSize = '';
+    }
+    
+    /**
+     * Update reading speed (WPM)
+     */
+    function updateReadingSpeed() {
+        if (!settings.showReadingSpeed || wordCount === 0) return;
+        
+        const minutes = elapsedSeconds / 60;
+        if (minutes > 0.1) { // Only calculate if at least 6 seconds have passed
+            readingSpeed = Math.round(wordCount / minutes);
+        } else {
+            readingSpeed = 0;
+        }
+        
+        const timer = document.getElementById('focus-mode-timer');
+        if (timer && settings.showReadingSpeed) {
+            let speedDisplay = timer.querySelector('.reading-speed');
+            if (!speedDisplay && wordCount > 0) {
+                // Create speed display if it doesn't exist
+                speedDisplay = document.createElement('span');
+                speedDisplay.className = 'reading-speed';
+                timer.querySelector('.timer-display').appendChild(speedDisplay);
+            }
+            if (speedDisplay) {
+                speedDisplay.textContent = readingSpeed > 0 ? `${readingSpeed} WPM` : 'Calculating...';
+            }
+        }
+    }
+    
+    /**
+     * Start focus session (Pomodoro-style)
+     */
+    function startFocusSession() {
+        focusSessionStartTime = Date.now();
+        sessionTimeRemaining = settings.focusSessionDuration * 60; // Convert to seconds
+        
+        focusSessionInterval = setInterval(() => {
+            if (!isPaused && sessionTimeRemaining > 0) {
+                sessionTimeRemaining--;
+                updateFocusSessionDisplay();
+                
+                if (sessionTimeRemaining === 0) {
+                    // Session complete
+                    showSessionCompleteNotification();
+                    stopFocusSession();
+                }
+            }
+        }, 1000);
+    }
+    
+    /**
+     * Stop focus session
+     */
+    function stopFocusSession() {
+        if (focusSessionInterval) {
+            clearInterval(focusSessionInterval);
+            focusSessionInterval = null;
+        }
+        removeFocusSessionDisplay();
+    }
+    
+    /**
+     * Update focus session display
+     */
+    function updateFocusSessionDisplay() {
+        const timer = document.getElementById('focus-mode-timer');
+        if (!timer) return;
+        
+        let sessionDisplay = timer.querySelector('.focus-session-time');
+        if (!sessionDisplay) {
+            sessionDisplay = document.createElement('div');
+            sessionDisplay.className = 'focus-session-time';
+            timer.querySelector('.timer-display').appendChild(sessionDisplay);
+        }
+        
+        const minutes = Math.floor(sessionTimeRemaining / 60);
+        const seconds = sessionTimeRemaining % 60;
+        sessionDisplay.textContent = `Session: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+    
+    /**
+     * Remove focus session display
+     */
+    function removeFocusSessionDisplay() {
+        const timer = document.getElementById('focus-mode-timer');
+        if (timer) {
+            const sessionDisplay = timer.querySelector('.focus-session-time');
+            if (sessionDisplay) sessionDisplay.remove();
+        }
+    }
+    
+    /**
+     * Show session complete notification
+     */
+    function showSessionCompleteNotification() {
+        const notification = document.createElement('div');
+        notification.className = 'focus-session-notification';
+        notification.innerHTML = `
+            <div class="notification-content">
+                <span class="notification-icon">🎉</span>
+                <div>
+                    <div class="notification-title">Focus Session Complete!</div>
+                    <div class="notification-message">Great job! Take a break.</div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 100);
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 5000);
+    }
+    
+    /**
+     * Save reading statistics
+     */
+    async function saveReadingStats() {
+        const today = new Date().toISOString().split('T')[0];
+        const stats = await StorageUtils.getReadingStats();
+        
+        if (!stats.daily) stats.daily = {};
+        if (!stats.daily[today]) stats.daily[today] = 0;
+        stats.daily[today] += 1; // Add 1 second
+        
+        stats.totalTime = (stats.totalTime || 0) + 1;
+        stats.totalSessions = (stats.totalSessions || 0) + (elapsedSeconds === 1 ? 1 : 0);
+        
+        await StorageUtils.setReadingStats(stats);
     }
 
     /**

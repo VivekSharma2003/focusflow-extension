@@ -241,6 +241,179 @@
 /* Width adjustments removed - preserving original page layout */
 
 /* ================================
+   Reading Progress Bar
+   ================================ */
+.focus-mode-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.1);
+  z-index: 999999;
+  transition: opacity 0.3s ease;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffffff, #e0e0e0);
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+@media (prefers-color-scheme: dark) {
+  .focus-mode-progress {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .progress-bar-fill {
+    background: linear-gradient(90deg, #ffffff, #c0c0c0);
+  }
+}
+
+.progress-text {
+  position: absolute;
+  top: 8px;
+  right: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #000000;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  .progress-text {
+    color: #ffffff;
+  }
+}
+
+/* ================================
+   Dark Mode
+   ================================ */
+.focus-dark-mode {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+.focus-dark-mode img,
+.focus-dark-mode video,
+.focus-dark-mode iframe,
+.focus-dark-mode canvas,
+.focus-dark-mode svg {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* ================================
+   Reading Speed Display
+   ================================ */
+.reading-speed {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.6);
+  margin-left: 8px;
+  font-weight: 500;
+}
+
+@media (prefers-color-scheme: dark) {
+  .reading-speed {
+    color: rgba(255, 255, 255, 0.6);
+  }
+}
+
+.focus-session-time {
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.5);
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+@media (prefers-color-scheme: dark) {
+  .focus-session-time {
+    color: rgba(255, 255, 255, 0.5);
+  }
+}
+
+/* ================================
+   Session Complete Notification
+   ================================ */
+.focus-session-notification {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  z-index: 1000000;
+  opacity: 0;
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.focus-session-notification.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.notification-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 32px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  .notification-content {
+    background: rgba(20, 20, 20, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+.notification-icon {
+  font-size: 48px;
+}
+
+.notification-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #000000;
+  margin-bottom: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .notification-title {
+    color: #ffffff;
+  }
+}
+
+.notification-message {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+@media (prefers-color-scheme: dark) {
+  .notification-message {
+    color: rgba(255, 255, 255, 0.6);
+  }
+}
+
+/* ================================
+   Timer Display Updates
+   ================================ */
+.timer-display {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.timer-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ================================
    Responsive Adjustments
    ================================ */
 @media (max-width: 768px) {
@@ -270,5 +443,11 @@
 
   .timer-time {
     font-size: 16px;
+  }
+  
+  .progress-text {
+    top: 6px;
+    right: 12px;
+    font-size: 10px;
   }
 }
