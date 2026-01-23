@@ -1,7 +1,9 @@
 document.addEventListener('DOMContentLoaded', init);
 
 // DOM Elements
-let scrollChunkSize, scrollChunkValue, showTimer;
+let scrollChunkSize, scrollChunkValue, showTimer, showReadingSpeed, showProgress;
+let darkMode, fontSize, fontSizeValue;
+let focusSessionDuration, focusSessionDurationValue;
 let whitelistInput, addWhitelistBtn, whitelistItems;
 let resetBtn, saveStatus;
 
@@ -9,6 +11,11 @@ let resetBtn, saveStatus;
 const defaults = {
     scrollChunkSize: 100,
     showTimer: true,
+    showReadingSpeed: true,
+    showProgress: true,
+    darkMode: false,
+    fontSize: 100,
+    focusSessionDuration: 25,
     whitelist: []
 };
 
@@ -20,6 +27,13 @@ async function init() {
     scrollChunkSize = document.getElementById('scrollChunkSize');
     scrollChunkValue = document.getElementById('scrollChunkValue');
     showTimer = document.getElementById('showTimer');
+    showReadingSpeed = document.getElementById('showReadingSpeed');
+    showProgress = document.getElementById('showProgress');
+    darkMode = document.getElementById('darkMode');
+    fontSize = document.getElementById('fontSize');
+    fontSizeValue = document.getElementById('fontSizeValue');
+    focusSessionDuration = document.getElementById('focusSessionDuration');
+    focusSessionDurationValue = document.getElementById('focusSessionDurationValue');
     whitelistInput = document.getElementById('whitelistInput');
     addWhitelistBtn = document.getElementById('addWhitelistBtn');
     whitelistItems = document.getElementById('whitelistItems');
@@ -44,7 +58,18 @@ async function loadSettings() {
             scrollChunkValue.textContent = `${result.scrollChunkSize}%`;
 
             // Show timer
-            showTimer.checked = result.showTimer;
+            showTimer.checked = result.showTimer !== false;
+            showReadingSpeed.checked = result.showReadingSpeed !== false;
+            showProgress.checked = result.showProgress !== false;
+
+            // Display settings
+            darkMode.checked = result.darkMode || false;
+            fontSize.value = result.fontSize || 100;
+            fontSizeValue.textContent = `${result.fontSize || 100}%`;
+
+            // Focus sessions
+            focusSessionDuration.value = result.focusSessionDuration || 25;
+            focusSessionDurationValue.textContent = `${result.focusSessionDuration || 25} min`;
 
             // Whitelist
             renderWhitelist(result.whitelist);
@@ -70,6 +95,39 @@ function setupEventListeners() {
     // Show timer toggle
     showTimer.addEventListener('change', () => {
         saveSettings({ showTimer: showTimer.checked });
+    });
+
+    // Show reading speed toggle
+    showReadingSpeed.addEventListener('change', () => {
+        saveSettings({ showReadingSpeed: showReadingSpeed.checked });
+    });
+
+    // Show progress toggle
+    showProgress.addEventListener('change', () => {
+        saveSettings({ showProgress: showProgress.checked });
+    });
+
+    // Dark mode toggle
+    darkMode.addEventListener('change', () => {
+        saveSettings({ darkMode: darkMode.checked });
+    });
+
+    // Font size slider
+    fontSize.addEventListener('input', () => {
+        fontSizeValue.textContent = `${fontSize.value}%`;
+    });
+
+    fontSize.addEventListener('change', () => {
+        saveSettings({ fontSize: parseInt(fontSize.value) });
+    });
+
+    // Focus session duration slider
+    focusSessionDuration.addEventListener('input', () => {
+        focusSessionDurationValue.textContent = `${focusSessionDuration.value} min`;
+    });
+
+    focusSessionDuration.addEventListener('change', () => {
+        saveSettings({ focusSessionDuration: parseInt(focusSessionDuration.value) });
     });
 
     // Add to whitelist

@@ -51,6 +51,72 @@
                         </label>
                     </div>
                 </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <label for="showReadingSpeed">Show Reading Speed</label>
+                        <p class="setting-description">Display words per minute (WPM)</p>
+                    </div>
+                    <div class="setting-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="showReadingSpeed" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <label for="showProgress">Show Progress Bar</label>
+                        <p class="setting-description">Display reading progress at top of page</p>
+                    </div>
+                    <div class="setting-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="showProgress" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Display Settings -->
+            <section class="settings-section">
+                <h2 class="section-title">Display</h2>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <label for="darkMode">Dark Mode</label>
+                        <p class="setting-description">Invert colors for better reading in low light</p>
+                    </div>
+                    <div class="setting-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="darkMode">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <label for="fontSize">Font Size</label>
+                        <p class="setting-description">Adjust text size for better readability</p>
+                    </div>
+                    <div class="setting-control">
+                        <input type="range" id="fontSize" min="75" max="150" value="100" step="5">
+                        <span class="range-value" id="fontSizeValue">100%</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Focus Sessions -->
+            <section class="settings-section">
+                <h2 class="section-title">Focus Sessions</h2>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <label for="focusSessionDuration">Session Duration</label>
+                        <p class="setting-description">Pomodoro-style focus session length (minutes)</p>
+                    </div>
+                    <div class="setting-control">
+                        <input type="range" id="focusSessionDuration" min="5" max="60" value="25" step="5">
+                        <span class="range-value" id="focusSessionDurationValue">25 min</span>
+                    </div>
+                </div>
             </section>
 
             <!-- Whitelist Settings -->
