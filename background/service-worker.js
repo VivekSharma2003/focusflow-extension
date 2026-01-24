@@ -6,6 +6,11 @@ chrome.runtime.onInstalled.addListener(async () => {
     const defaults = {
         scrollChunkSize: 100,
         showTimer: true,
+        showReadingSpeed: true,
+        showProgress: true,
+        darkMode: false,
+        fontSize: 100,
+        focusSessionDuration: 25,
         whitelist: []
     };
 
