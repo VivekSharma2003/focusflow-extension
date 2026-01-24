@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', init);
 // DOM Elements
 let focusToggle, timerSection, timerValue, pauseBtn, resetBtn;
 let statusIndicator, statusText, settingsLink;
+let statsSection, todayTime, todaySessions, totalTime;
 
 // State
 let currentTab = null;
@@ -21,6 +22,10 @@ async function init() {
     statusIndicator = document.querySelector('.status-indicator');
     statusText = document.getElementById('statusText');
     settingsLink = document.getElementById('settingsLink');
+    statsSection = document.getElementById('statsSection');
+    todayTime = document.getElementById('todayTime');
+    todaySessions = document.getElementById('todaySessions');
+    totalTime = document.getElementById('totalTime');
 
     // Get current tab
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -34,6 +39,9 @@ async function init() {
 
     // Start timer updates
     startTimerUpdates();
+    
+    // Load and display statistics
+    loadStatistics();
 }
 
 /**
@@ -186,4 +194,37 @@ function formatTime(totalSeconds) {
         return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+/**
+ * Load and display reading statistics
+ */
+async function loadStatistics() {
+    try {
+        // Import StorageUtils
+        const stats = await new Promise((resolve) => {
+            chrome.storage.local.get({ readingStats: { totalTime: 0, totalSessions: 0, daily: {} } }, (result) => {
+                resolve(result.readingStats);
+            });
+        });
+
+        // Calculate today's stats
+        const today = new Date().toISOString().split('T')[0];
+        const todaySeconds = stats.daily[today] || 0;
+        const todayMinutes = Math.floor(todaySeconds / 60);
+        const totalHours = Math.floor(stats.totalTime / 3600);
+        const totalMinutes = Math.floor((stats.totalTime % 3600) / 60);
+
+        // Update UI
+        todayTime.textContent = todayMinutes > 0 ? `${todayMinutes}m` : '<1m';
+        todaySessions.textContent = stats.totalSessions || 0;
+        totalTime.textContent = totalHours > 0 ? `${totalHours}h` : `${totalMinutes}m`;
+
+        // Show stats section
+        if (statsSection) {
+            statsSection.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading statistics:', error);
+    }
 }
