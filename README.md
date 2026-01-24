@@ -22,9 +22,46 @@ A Chrome browser extension that helps you read online content without distractio
 - Pause and reset controls
 - Remembers time per website
 
+### 📊 Reading Progress
+- Visual progress bar at the top of the page
+- Shows percentage of article read
+- Updates in real-time as you scroll
+
+### 📈 Reading Speed Calculator
+- Calculates words per minute (WPM) automatically
+- Displays reading speed in the timer overlay
+- Helps track and improve reading efficiency
+
+### 🌙 Dark Mode
+- Invert page colors for comfortable reading in low light
+- Toggle on/off in settings
+- Preserves image and video colors
+
+### 🔤 Font Size Adjuster
+- Adjust text size from 75% to 150%
+- Better readability for all users
+- Applies to entire page content
+
+### 🎯 Focus Sessions (Pomodoro)
+- Set focus session duration (5-60 minutes)
+- Visual countdown timer
+- Completion notification when session ends
+- Helps maintain focus and take breaks
+
+### 📊 Reading Statistics
+- Track daily reading time
+- View total reading time across all sessions
+- Session counter
+- Statistics displayed in popup
+
 ### ⚙️ Customizable Settings
 - Adjust scroll chunk size (25% - 150%)
 - Show/hide timer overlay
+- Toggle reading speed display
+- Toggle progress bar
+- Dark mode toggle
+- Font size adjustment (75% - 150%)
+- Focus session duration (5-60 minutes)
 - Whitelist websites to exclude
 
 ## Installation
@@ -60,6 +97,11 @@ Access settings by:
 ### Available Options
 - **Scroll Chunk Size**: How much to scroll at once (default: 100% of viewport)
 - **Show Timer**: Toggle the reading time overlay
+- **Show Reading Speed**: Display words per minute (WPM) calculation
+- **Show Progress Bar**: Display reading progress at top of page
+- **Dark Mode**: Invert colors for low-light reading
+- **Font Size**: Adjust text size from 75% to 150%
+- **Focus Session Duration**: Set Pomodoro-style session length (5-60 minutes)
 - **Whitelist**: Add domains where Focus Mode should never activate
 
 ## File Structure
@@ -90,7 +132,10 @@ FocusFlow/
 - **Manifest V3** compatible
 - **Vanilla JavaScript** - no frameworks
 - **Chrome Storage Sync API** for cross-device settings
+- **Chrome Storage Local API** for reading statistics
 - Works on most article-based websites
+- Real-time reading speed calculation
+- Progress tracking with scroll detection
 
 ## Privacy
 
